@@ -35,42 +35,44 @@ func loadFixture(t *testing.T, fixture string) string {
 func TestCliArgs(t *testing.T) {
 
 	tests := []struct {
-		name    string
-		args    []string
-		fixture string
+		name string
+		args []string
 	}{
-		{"version-argument", []string{"version"}, "version-argument.golden"},
+		{"add arg", []string{"add", "--title", "wow", "--message", "bar"}},
+		{"ls arg", []string{"ls", "--title", "wow", "--message", "bar"}},
 	}
 
-	for _, tt := range tests {
+	dir, err := os.Getwd()
 
-		t.Run(tt.name, func(t *testing.T) {
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			dir, err := os.Getwd()
+	cmd := exec.Command(path.Join(dir, binaryName), tests[0].args...)
+	output, err := cmd.CombinedOutput()
 
-			if err != nil {
-				t.Fatal(err)
-			}
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			cmd := exec.Command(path.Join(dir, binaryName), tt.args...)
+	actual := string(output)
 
-			output, err := cmd.CombinedOutput()
+	wow := strings.Split(actual, " ")
 
-			if err != nil {
-				t.Fatal(err)
-			}
+	var args = []string{"ls-id", wow[0]}
+	cmd = exec.Command(path.Join(dir, binaryName), args...)
 
-			actual := string(output)
-			expected := loadFixture(t, tt.fixture)
+	output1, err := cmd.CombinedOutput()
 
-			actual = strings.TrimRight(actual, "\n")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			if actual != expected {
-				t.Fatalf("\n%s\n%s\n%d\n%d", actual, expected, len(actual), len(expected))
-			}
+	expected := string(output1)
 
-		})
 
+	if actual != expected {
+		t.Fatalf(wow[0] + " " + expected)
 	}
 
 }
